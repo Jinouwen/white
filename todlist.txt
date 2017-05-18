@@ -1,0 +1,28 @@
+
+
+·É»ú 
+	class down
+	draw down
+	update down
+		move down
+			ÇãÐ± down
+		
+	
+mainboard
+	±ß½ç down
+
+firesystem
+	pushuFireRequest down
+	load down
+	update down
+	draw down
+	type down
+		0 down 1 down 2 down
+	level
+		changeLevel down
+	
+enemySystem
+	load down
+	draw doing
+	
+crack check
