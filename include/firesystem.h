@@ -20,6 +20,22 @@ struct Shell
     {
         states.transform.translate(pos);
     }
+    public:
+    sf::RenderStates getStates() const
+    {
+        sf::RenderStates temp(states);
+        temp.transform.rotate( atan2(velocity.x , -velocity.y ) * 180.0/3.1415926);
+        if(typeId == 2)
+        {
+            temp.transform.rotate(elapsed.asMilliseconds()/4);
+            temp.transform.translate
+            (
+             sf::Vector2f( 120.0*std::cos(elapsed.asMilliseconds()/50.0+4)
+                          ,120.0*std::sin(elapsed.asMilliseconds()/50.0+4))
+            );
+        }
+        return temp;
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -28,17 +44,21 @@ class FireSystem:public sf::Drawable, public sf::Transformable
     public:
         FireSystem(unsigned int count0):count(count0),shells(count0)
         {
-            loadShell(0,sf::IntRect(0, 0, 6, 12),1300,sf::Vector2f(3.0,12.0),sf::seconds(0.10),3);
-            loadShell(1,sf::IntRect(7, 0, 8, 8),700,sf::Vector2f(4.0,4.0),sf::seconds(0.6),8);
-            loadShell(2,sf::IntRect(16, 0, 11, 11),500,sf::Vector2f(5.0,5.0),sf::seconds(0.05),4);
+            loadShell(0,sf::IntRect(0, 0, 6, 12),1300,sf::Vector2f(3.0,12.0),sf::seconds(0.10),2.5);
+            loadShell(1,sf::IntRect(7, 0, 8, 8),700,sf::Vector2f(4.0,4.0),sf::seconds(0.6),6);
+            loadShell(2,sf::IntRect(16, 0, 11, 11),500,sf::Vector2f(5.0,5.0),sf::seconds(0.05),3);
         }
         virtual ~FireSystem() {}
         void pushFireRequest(Shell fireRequest);
         void update(sf::Time elapsed);
         bool checkFire(unsigned int typeId);
         unsigned int getCount(){return count;}
+        void readyToCheck();
+        int pushNextActive();
+        sf::FloatRect getShellRect();
     private:
         unsigned int count;
+        unsigned int nowNum;
         std::vector<Shell> shells;
         sf::Texture shellTexture[20];
         float typeVelocity[20];
@@ -55,20 +75,9 @@ class FireSystem:public sf::Drawable, public sf::Transformable
             for(unsigned int i=0;i<shells.size();++i)
             if(shells[i].active == 1  )
             {
-                states.transform=getTransform();
-                //states.transform.translate(shells[i].position);
-                states.transform*=shells[i].states.transform;
-                states.transform.rotate
-                (
-                    atan2( shells[i].velocity.x , -shells[i].velocity.y ) * 180.0/3.1415926
-                );
-                if(shells[i].typeId == 2)
-                {
-                    states.transform.rotate(shells[i].elapsed.asMilliseconds()/4);
-                    states.transform.translate(sf::Vector2f(120.0*std::cos(shells[i].elapsed.asMilliseconds()/50.0+4),120.0*std::sin(shells[i].elapsed.asMilliseconds()/50.0+4)));
-                }
+                states.transform = getTransform();
+                states.transform *= (shells[i].getStates()).transform;
                 target.draw(shellSprite[shells[i].typeId],states);
-                //target.draw(shellSprite[shells[i].typeId],shells[i].states);
             }
         }
 };
@@ -83,7 +92,7 @@ void FireSystem::pushFireRequest(Shell fireRequest)
     if(shells[i].active == 0)
     {
         shells[i]=fireRequest;
-        shells[i].elapsed=sf::Time();
+        shells[i].elapsed=sf::Time::Zero;
         break;
     }
 }
@@ -100,14 +109,10 @@ void FireSystem::update(sf::Time elapsed)
         shells[i].elapsed+=elapsed;
         sf::Vector2f nowPos=shells[i].states.transform*sf::Vector2f(0,0);
 
-        if(   nowPos.x>2000||nowPos.x<-100
-            ||nowPos.y>2000||nowPos.y<-100)
+        if(   nowPos.x>1700||nowPos.x<-100
+            ||nowPos.y>1000||nowPos.y<-100)
         {
             shells[i].active=0;
-        }
-        if(shells[i].typeId == 2)
-        {
-
         }
     }
 }
@@ -132,5 +137,23 @@ void FireSystem::loadShell(unsigned int typeId,sf::IntRect rec,float vel,sf::Vec
     typeVelocity[typeId]=vel;
     firePause[typeId]=pauseTime;
 
+}
+void FireSystem::readyToCheck()
+{
+    nowNum=0;
+}
+int FireSystem::pushNextActive()
+{
+    while(nowNum<shells.size()&&  (shells[nowNum].active==0))
+        nowNum++;
+    if(nowNum>=shells.size()) return -1;
+    return nowNum;
+}
+sf::FloatRect FireSystem::getShellRect()
+{
+    sf::Sprite temp(shellSprite[shells[nowNum].typeId]);
+    temp.move((shells[nowNum].getStates()).transform * sf::Vector2f(0,0));
+    nowNum++;
+    return temp.getGlobalBounds();
 }
 #endif // FIRESYSTEM_H

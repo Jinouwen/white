@@ -9,13 +9,6 @@
 #include <string>
 #include <sstream>
 
-std::string Int_to_String(int n)
-{
-    std::stringstream ss;
-    ss<<n;
-    return ss.str();
-}
-
 class GameClass
 {
     public:
@@ -32,6 +25,7 @@ class GameClass
         void updateMyship(sf::Time elapsed);
         void myShipFire(unsigned int typeId,unsigned int level);
         void myshipPFR(unsigned int getemitter,sf::Vector2f vel,unsigned int typeId);
+        void checkCollision();
     private:
         sf::ContextSettings settings;
         sf::RenderWindow window;
@@ -56,7 +50,7 @@ class GameClass
 /////////////////////////////////////////////////////////////////////////////constructor
 GameClass::GameClass()
 :window(sf::VideoMode(1600, 900), "SFML works!", sf::Style::Close , settings)
-,fireSystem(300),enemySystem(40)
+,fireSystem(500),enemySystem(10)
 ,mainboardPos(400,0),mainboardsize(800,900)
 ,shellTypeText0("Now shell type: "),levelText0("Now level: ")
 ,nowShellType(0),nowLevel(0)
@@ -147,9 +141,25 @@ void GameClass::processEvents()
         }
         else if(event.type == sf::Event::KeyPressed)
         {
-            if(event.key.code == sf::Keyboard::Space)
+            if(event.key.code ==sf::Keyboard::Num1)
             {
-                myShipFire(0,5);
+                nowLevel= nowLevel==0?nowLevel:nowLevel-1;
+                levelText.setString(levelText0+Int_to_String(nowLevel));
+            }
+            else if(event.key.code ==sf::Keyboard::Num2)//B
+            {
+                nowShellType = nowShellType == 2 ?nowShellType :nowShellType+1;
+                shellTypeText.setString(shellTypeText0+Int_to_String(nowShellType));
+            }
+            else if(event.key.code ==sf::Keyboard::Num3)//X
+            {
+                nowShellType = nowShellType ==0? nowShellType :nowShellType-1;
+                shellTypeText.setString(shellTypeText0+Int_to_String(nowShellType));
+            }
+            else if(event.key.code ==sf::Keyboard::Num4)//Y
+            {
+                nowLevel= nowLevel==4?nowLevel:nowLevel+1;
+                levelText.setString(levelText0+Int_to_String(nowLevel));
             }
         }
     }
@@ -172,6 +182,7 @@ void GameClass::update(sf::Time elapsed)
     updateMyship(elapsed);
     fireSystem.update(elapsed);
     enemySystem.update(elapsed);
+    //checkCollision();
 }
 
 void GameClass::updateMyship(sf::Time elapsed)
@@ -179,6 +190,15 @@ void GameClass::updateMyship(sf::Time elapsed)
 
     float x = sf::Joystick::getAxisPosition(0, sf::Joystick::X);
     float y = sf::Joystick::getAxisPosition(0, sf::Joystick::Y);
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+        x-=100;
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+        x+=100;
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+        y+=100;
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+        y-=100;
+
     float v = 5;
 
     myship.setRotation(x/10);
@@ -191,6 +211,11 @@ void GameClass::updateMyship(sf::Time elapsed)
         myship.move(0.0, y*v*elapsed.asSeconds() );
 
     if(sf::Joystick::isButtonPressed(0,5))
+    {
+        myShipFire(nowShellType,nowLevel);
+    }
+    if(  sf::Keyboard::isKeyPressed(sf::Keyboard::Space)
+       ||sf::Keyboard::isKeyPressed(sf::Keyboard::J)      )
     {
         myShipFire(nowShellType,nowLevel);
     }
@@ -262,5 +287,26 @@ void GameClass::myShipFire(unsigned int typeId,unsigned int level)
 void GameClass::myshipPFR(unsigned int getemitter,sf::Vector2f vel,unsigned int typeId)
 {
     fireSystem.pushFireRequest(Shell(myship.getemitter(getemitter),vel,typeId));
+}
+void GameClass::checkCollision()
+{
+    fireSystem.readyToCheck();
+    int shellId;
+    int enemyId;
+    static int sz=0;
+    while( (shellId=fireSystem.pushNextActive()) != -1 )
+    {
+        sf::FloatRect shellRect(fireSystem.getShellRect());
+        enemySystem.readyToCheck();
+        while((enemyId=enemySystem.pushNextActive()) != -1)
+        {
+            std::cout<<++sz<<std::endl;
+            sf::FloatRect enemyRect(enemySystem.getEnemyRect());
+            if(shellRect.intersects(enemyRect))
+            {
+                std::cout<<"colision!!"<<std::endl;
+            }
+        }
+    }
 }
 #endif // GAMECLASS_H
