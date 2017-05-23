@@ -56,6 +56,9 @@ class FireSystem:public sf::Drawable, public sf::Transformable
         void readyToCheck();
         int pushNextActive();
         sf::FloatRect getShellRect();
+        sf::Vector2f getNowPos();
+        sf::Vector2f getCollisionPos();
+        void dealCollision();
     private:
         unsigned int count;
         unsigned int nowNum;
@@ -155,5 +158,17 @@ sf::FloatRect FireSystem::getShellRect()
     temp.move((shells[nowNum].getStates()).transform * sf::Vector2f(0,0));
     nowNum++;
     return temp.getGlobalBounds();
+}
+sf::Vector2f FireSystem::getNowPos()
+{
+    return ((shells[nowNum].getStates()).transform).transformPoint(sf::Vector2f(0,0)) ;
+}
+sf::Vector2f FireSystem::getCollisionPos()
+{
+    return shells[nowNum++].getStates().transform.transformPoint(0,0);
+}
+void FireSystem::dealCollision()
+{
+    shells[nowNum-1].active=0;
 }
 #endif // FIRESYSTEM_H

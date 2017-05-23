@@ -82,7 +82,7 @@ class EnemiesDataClass
         }
         int check(sf::Time totalTime)
         {
-            if(nowNum>num) return -1;
+            if(nowNum>=num) return -1;
             if(totalTime>=timeList[nowNum]) return 1;
             return 0;
         }
@@ -105,6 +105,7 @@ class EnemyClass:public sf::Drawable, public sf::Transformable
         void readyToCheck(){nowNum=0;}
         int pushNextActive();
         sf::FloatRect getEnemyRect();
+        sf::Vector2f getCollisionPos();
     private:
         std::vector<enemy> enemies;
         unsigned int count;
@@ -154,7 +155,7 @@ void EnemyClass::update(sf::Time elapsed)
 
         sf::Vector2f pos;
         pos=(enemies[i].getTransform())*pos;
-        if(pos.x<-300||pos.x>2000||pos.y<-300||pos.y>2000)
+        if(pos.x<-300||pos.x>2000||pos.y<-300||pos.y>900)
         {
           enemies[i].active=0;
         }
@@ -189,5 +190,9 @@ sf::FloatRect EnemyClass::getEnemyRect()
     temp.move((enemies[nowNum].getTransform()*sf::Vector2f(0,0)));
     nowNum++;
     return temp.getGlobalBounds();
+}
+sf::Vector2f EnemyClass::getCollisionPos()
+{
+    return enemies[nowNum++].getTransform().transformPoint(0,0);
 }
 #endif // ENEMYCLASS_H

@@ -26,6 +26,7 @@ class GameClass
         void myShipFire(unsigned int typeId,unsigned int level);
         void myshipPFR(unsigned int getemitter,sf::Vector2f vel,unsigned int typeId);
         void checkCollision();
+        bool isCollision(sf::Vector2f,sf::Vector2f);
     private:
         sf::ContextSettings settings;
         sf::RenderWindow window;
@@ -168,9 +169,9 @@ void GameClass::render()
 {
     window.clear(sf::Color(200,200,200));
     window.draw(mainboard);
-    window.draw(enemySystem);
     window.draw(myship);
     window.draw(fireSystem);
+    window.draw(enemySystem);
     window.draw(leftboard);
     window.draw(rightboard);
     window.draw(shellTypeText);
@@ -182,7 +183,7 @@ void GameClass::update(sf::Time elapsed)
     updateMyship(elapsed);
     fireSystem.update(elapsed);
     enemySystem.update(elapsed);
-    //checkCollision();
+    checkCollision();
 }
 
 void GameClass::updateMyship(sf::Time elapsed)
@@ -293,20 +294,24 @@ void GameClass::checkCollision()
     fireSystem.readyToCheck();
     int shellId;
     int enemyId;
-    static int sz=0;
     while( (shellId=fireSystem.pushNextActive()) != -1 )
     {
-        sf::FloatRect shellRect(fireSystem.getShellRect());
+        sf::Vector2f shellPos(fireSystem.getCollisionPos());
         enemySystem.readyToCheck();
         while((enemyId=enemySystem.pushNextActive()) != -1)
         {
-            std::cout<<++sz<<std::endl;
-            sf::FloatRect enemyRect(enemySystem.getEnemyRect());
-            if(shellRect.intersects(enemyRect))
+           // std::cout<<++sz<<std::endl;
+            sf::Vector2f enemyPos(enemySystem.getCollisionPos());
+            if(isCollision(shellPos,enemyPos))
             {
-                std::cout<<"colision!!"<<std::endl;
+               std::cout<<"collision!!"<<std::endl;
+               fireSystem.dealCollision();
             }
         }
     }
+}
+bool GameClass::isCollision(sf::Vector2f p1,sf::Vector2f p2)
+{
+    return (p1.x-p2.x)*(p1.x-p2.x)<=400 && (p1.y-p2.y)*(p1.y-p2.y) <= 800;
 }
 #endif // GAMECLASS_H

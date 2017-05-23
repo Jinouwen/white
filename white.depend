@@ -396,7 +396,7 @@
 	<string>
 	<vector>
 
-1495459341 d:\poj\white\include\gameclass.h
+1495503466 d:\poj\white\include\gameclass.h
 	<SFML/Graphics.hpp>
 	<myshipclass.h>
 	<firesystem.h>
@@ -409,10 +409,10 @@
 	<SFML/Graphics.hpp>
 	<iostream>
 
-1495458498 d:\poj\white\include\firesystem.h
+1495503076 d:\poj\white\include\firesystem.h
 	<SFML/Graphics.hpp>
 
-1495457885 d:\poj\white\include\enemyclass.h
+1495502591 d:\poj\white\include\enemyclass.h
 	<cstdio>
 	<myshipclass.h>
 	<firesystem.h>
