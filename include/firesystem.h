@@ -2,6 +2,7 @@
 #define FIRESYSTEM_H
 
 #include <SFML/Graphics.hpp>
+
 struct Shell
 {
     sf::Vector2f shellTransform;
@@ -44,9 +45,10 @@ class FireSystem:public sf::Drawable, public sf::Transformable
     public:
         FireSystem(unsigned int count0):count(count0),shells(count0)
         {
-            loadShell(0,sf::IntRect(0, 0, 6, 12),1300,sf::Vector2f(3.0,12.0),sf::seconds(0.10),2.5);
-            loadShell(1,sf::IntRect(7, 0, 8, 8),700,sf::Vector2f(4.0,4.0),sf::seconds(0.6),6);
-            loadShell(2,sf::IntRect(16, 0, 11, 11),500,sf::Vector2f(5.0,5.0),sf::seconds(0.05),3);
+            loadShell(0,sf::IntRect(0, 0, 6, 12),1300,sf::Vector2f(3.0,12.0),sf::seconds(0.10),2.5,1);
+            loadShell(1,sf::IntRect(7, 0, 8, 8),700,sf::Vector2f(4.0,4.0),sf::seconds(0.6),6,5);
+            loadShell(2,sf::IntRect(16, 0, 11, 11),500,sf::Vector2f(5.0,5.0),sf::seconds(0.05),3,1);
+            loadShell(10,sf::IntRect(0, 0, 6, 12),400,sf::Vector2f(3.0,12.0),sf::seconds(1),2.5,4);
         }
         virtual ~FireSystem() {}
         void pushFireRequest(Shell fireRequest);
@@ -58,19 +60,22 @@ class FireSystem:public sf::Drawable, public sf::Transformable
         sf::FloatRect getShellRect();
         sf::Vector2f getNowPos();
         sf::Vector2f getCollisionPos();
-        void dealCollision();
+        float dealCollision();
+        unsigned int getType(){return shells[nowNum-1].typeId;};
     private:
         unsigned int count;
         unsigned int nowNum;
         std::vector<Shell> shells;
         sf::Texture shellTexture[20];
         float typeVelocity[20];
+        float typeDamage[20];
         sf::Time firePause[20];
         sf::Clock fireClock[20];
         sf::Time fireElapsed[20];
         sf::Sprite shellSprite[20];
+
         float shellSize[20];
-        void loadShell(unsigned int typeId,sf::IntRect rec,float vel,sf::Vector2f opos,sf::Time pauseTime,float sizeChange);
+        void loadShell(unsigned int typeId,sf::IntRect rec,float vel,sf::Vector2f opos,sf::Time pauseTime,float sizeChange,float damage);
     private:
         virtual void draw(sf::RenderTarget& target, sf::RenderStates   states) const
         {
@@ -130,7 +135,10 @@ bool FireSystem::checkFire(unsigned int typeId)
     }
     return flag;
 }
-void FireSystem::loadShell(unsigned int typeId,sf::IntRect rec,float vel,sf::Vector2f opos,sf::Time pauseTime,float sizeChange)
+void FireSystem::loadShell(
+        unsigned int typeId,sf::IntRect rec,float vel
+        ,sf::Vector2f opos,sf::Time pauseTime
+        ,float sizeChange,float damage )
 {
     if(!shellTexture[typeId].loadFromFile("shell1.png",rec))
         std::cout<<"shellTexture[0].loadFromFile error!!"<<std::endl;
@@ -138,6 +146,7 @@ void FireSystem::loadShell(unsigned int typeId,sf::IntRect rec,float vel,sf::Vec
     shellSprite[typeId].setOrigin(opos);
     shellSprite[typeId].setScale(sizeChange,sizeChange);
     typeVelocity[typeId]=vel;
+    typeDamage[typeId]=damage;
     firePause[typeId]=pauseTime;
 
 }
@@ -167,8 +176,9 @@ sf::Vector2f FireSystem::getCollisionPos()
 {
     return shells[nowNum++].getStates().transform.transformPoint(0,0);
 }
-void FireSystem::dealCollision()
+float FireSystem::dealCollision()
 {
     shells[nowNum-1].active=0;
+    return typeDamage[shells[nowNum-1].typeId];
 }
 #endif // FIRESYSTEM_H

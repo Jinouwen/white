@@ -47,6 +47,8 @@
 		<Linker>
 			<Add directory="D:/sfml/SFML-2.4.2/lib" />
 		</Linker>
+		<Unit filename="include/animationsystem.h" />
+		<Unit filename="include/effectssystem.h" />
 		<Unit filename="include/enemyclass.h" />
 		<Unit filename="include/firesystem.h" />
 		<Unit filename="include/gameclass.h" />

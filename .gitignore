@@ -2,3 +2,6 @@
 *.exe
 *.depend
 *.o
+backGround0.png
+*.png
+*.wav

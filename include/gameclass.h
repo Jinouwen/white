@@ -1,20 +1,24 @@
 #ifndef GAMECLASS_H
 #define GAMECLASS_H
 
+#include <state.h>
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <myshipclass.h>
 #include <firesystem.h>
 #include <enemyclass.h>
+#include <effectssystem.h>
+#include <animationsystem.h>
 #include <iostream>
 #include <string>
 #include <sstream>
 
-class GameClass
+class GameClass:public State
 {
     public:
         GameClass();
         virtual ~GameClass() {}
-        void run();
+        virtual void run();
     protected:
 
     private:
@@ -27,12 +31,15 @@ class GameClass
         void myshipPFR(unsigned int getemitter,sf::Vector2f vel,unsigned int typeId);
         void checkCollision();
         bool isCollision(sf::Vector2f,sf::Vector2f);
+        void playBGM(sf::Music &music);
+        void updateBackground(sf::Time elapsed);
+        void viewUpdate();
     private:
-        sf::ContextSettings settings;
         sf::RenderWindow window;
         FireSystem fireSystem;
         MyshipClass myship;
         EnemyClass enemySystem;
+        AnimationSystem animationSystem;
 
 
         sf::Vector2f mainboardPos;
@@ -40,6 +47,10 @@ class GameClass
         sf::RectangleShape mainboard;
         sf::RectangleShape leftboard;
         sf::RectangleShape rightboard;
+        sf::RectangleShape background0;
+        sf::RectangleShape background1;
+        sf::Texture backgroundTexture0;
+        sf::Texture backgroundTexture1;
         sf::Text shellTypeText;
         sf::Text levelText;
         std::string shellTypeText0;
@@ -47,31 +58,52 @@ class GameClass
         unsigned int nowShellType;
         unsigned int nowLevel;
         sf::Font font;
+        sf::Time totalTime;
+        sf::Event event;
+        sf::View gameView;
+        sf::View totalView;
+
+
 };
 /////////////////////////////////////////////////////////////////////////////constructor
 GameClass::GameClass()
-:window(sf::VideoMode(1600, 900), "SFML works!", sf::Style::Close , settings)
+:window(sf::VideoMode(1600, 900), "SFML works!", sf::Style::Close)
 ,fireSystem(500),enemySystem(10)
-,mainboardPos(400,0),mainboardsize(800,900)
+,mainboardPos(400,0),mainboardsize(800,900)//400 1200
 ,shellTypeText0("Now shell type: "),levelText0("Now level: ")
 ,nowShellType(0),nowLevel(0)
 {
-    settings.antialiasingLevel = 0;
     window.setPosition(sf::Vector2i(100,50));
-    window.setFramerateLimit(60);
-    //window.setVerticalSyncEnabled(true);
+    window.setFramerateLimit(120);
+    totalView=window.getDefaultView();
+    gameView.setCenter(sf::Vector2f(800,450));
+    gameView.setSize(sf::Vector2f(600,700));
+    gameView.setViewport(sf::FloatRect(0.25,0,0.5,1));
 
+
+    backgroundTexture0.loadFromFile("backGround0.png");
+    backgroundTexture1.loadFromFile("backGround1.png");
+    backgroundTexture0.setRepeated(1);
+    backgroundTexture1.setRepeated(1);
     myship.setPosition(sf::Vector2f(800,700));
     mainboard.setPosition(mainboardPos);
     mainboard.setSize(mainboardsize);
-    mainboard.setFillColor(sf::Color(170,170,170));
     leftboard.setPosition(sf::Vector2f(0.0,0.0));
     leftboard.setSize(sf::Vector2f(400.0,900.0));
-    leftboard.setFillColor(sf::Color(200,200,200));
+    leftboard.setFillColor(sf::Color(20,20,20));
     rightboard.setPosition(sf::Vector2f(1200,0));
     rightboard.setSize(sf::Vector2f(400.0,900.0));
-    rightboard.setFillColor(sf::Color(200,200,200));
+    rightboard.setFillColor(sf::Color(20,20,20));
 
+    background0=mainboard;
+    background0.setTexture(&backgroundTexture0);
+    background0.setTextureRect(sf::IntRect(0,0,1600,1800));
+    background0.setFillColor(sf::Color(255,255,255,100));
+    background1=background0;
+    background1.setTexture(&backgroundTexture1);
+
+
+    mainboard.setFillColor(sf::Color(170,170,170));
     if(!font.loadFromFile("myfont.ttf"))
     {
         std::cout<<"font.loadFromFile(myfont.ttf) error!!"<<std::endl;
@@ -89,6 +121,9 @@ void GameClass::run()
     const sf::Time TPF(sf::seconds(1.f / 60.f));///Time Per Frame
     sf::Clock clock;
     sf::Time elapsed(sf::Time::Zero);
+    sf::Music music;
+
+    playBGM(music);
     while(window.isOpen())
     {
         elapsed=clock.restart();
@@ -99,7 +134,6 @@ void GameClass::run()
 }
 void GameClass::processEvents()
 {
-    sf::Event event;
     while (window.pollEvent(event))
     {
         if(event.type == sf::Event::Closed)
@@ -108,7 +142,7 @@ void GameClass::processEvents()
         }
         else if(event.type == sf::Event::LostFocus)
         {
-            //
+
         }
         else if(event.type == sf::Event::JoystickButtonPressed)
         {
@@ -162,27 +196,47 @@ void GameClass::processEvents()
                 nowLevel= nowLevel==4?nowLevel:nowLevel+1;
                 levelText.setString(levelText0+Int_to_String(nowLevel));
             }
+            else if(event.key.code ==sf::Keyboard::K)//Y
+            {
+
+            }
         }
     }
 }
 void GameClass::render()
 {
     window.clear(sf::Color(200,200,200));
-    window.draw(mainboard);
-    window.draw(myship);
-    window.draw(fireSystem);
-    window.draw(enemySystem);
+
+    window.setView(totalView);
     window.draw(leftboard);
     window.draw(rightboard);
     window.draw(shellTypeText);
     window.draw(levelText);
+
+    window.setView(gameView);
+    window.draw(mainboard);
+    window.draw(background0);
+    window.draw(background1);
+    window.draw(myship);
+    window.draw(fireSystem);
+    window.draw(enemySystem);
+    window.draw(shellTypeText);
+    window.draw(levelText);
+    window.draw(leftboard);
+    window.draw(rightboard);
+    window.draw(animationSystem);
+
     window.display();
 }
 void GameClass::update(sf::Time elapsed)
 {
+    totalTime+=elapsed;
+    updateBackground(elapsed);
     updateMyship(elapsed);
+    animationSystem.update(elapsed);
     fireSystem.update(elapsed);
-    enemySystem.update(elapsed);
+    enemySystem.update(elapsed,fireSystem,myship.getPosition());
+    viewUpdate();
     checkCollision();
 }
 
@@ -220,6 +274,7 @@ void GameClass::updateMyship(sf::Time elapsed)
     {
         myShipFire(nowShellType,nowLevel);
     }
+    myship.update(elapsed);
 }
 
 
@@ -259,6 +314,8 @@ void GameClass::myShipFire(unsigned int typeId,unsigned int level)
             myshipPFR(4,sf::Vector2f(-250,-1000),0);
             myshipPFR(3,sf::Vector2f(250,-1000),0);
         }
+
+        myshipPFR(10,sf::Vector2f(0,-1000),0);
     }
     else if(typeId == 1)
     {
@@ -297,15 +354,25 @@ void GameClass::checkCollision()
     while( (shellId=fireSystem.pushNextActive()) != -1 )
     {
         sf::Vector2f shellPos(fireSystem.getCollisionPos());
-        enemySystem.readyToCheck();
-        while((enemyId=enemySystem.pushNextActive()) != -1)
+        if(fireSystem.getType()<10)
         {
-           // std::cout<<++sz<<std::endl;
-            sf::Vector2f enemyPos(enemySystem.getCollisionPos());
-            if(isCollision(shellPos,enemyPos))
+            enemySystem.readyToCheck();
+            while((enemyId=enemySystem.pushNextActive()) != -1)
             {
-               std::cout<<"collision!!"<<std::endl;
-               fireSystem.dealCollision();
+            // std::cout<<++sz<<std::endl;
+                sf::Vector2f enemyPos(enemySystem.getCollisionPos());
+                if(isCollision(shellPos,enemyPos))
+                {
+               // std::cout<<"collision!!"<<std::endl;
+                enemySystem.dealCollison(fireSystem.dealCollision(),animationSystem);
+                }
+            }
+        }
+        else
+        {
+            if(isCollision(shellPos,myship.getPosition()))
+            {
+                myship.dealCollison(fireSystem.dealCollision(),animationSystem);
             }
         }
     }
@@ -313,5 +380,24 @@ void GameClass::checkCollision()
 bool GameClass::isCollision(sf::Vector2f p1,sf::Vector2f p2)
 {
     return (p1.x-p2.x)*(p1.x-p2.x)<=400 && (p1.y-p2.y)*(p1.y-p2.y) <= 800;
+}
+void GameClass::playBGM(sf::Music &music)
+{
+    music.openFromFile("1.NieR- Automata OST - Intro.wav");
+    music.play();
+}
+void GameClass::updateBackground(sf::Time elapsed)
+{
+    background0.setTextureRect(sf::IntRect(totalTime.asSeconds()*-20,-totalTime.asSeconds()*250,1600,1800));
+    background1.setTextureRect(sf::IntRect(totalTime.asSeconds()*50,-totalTime.asSeconds()*200,1600,1800));
+}
+void GameClass::viewUpdate()
+{
+    sf::Vector2f p(myship.getPosition()-mainboardPos);
+    p.x/=4;
+    p.y/=4.5;
+
+    gameView.setCenter(mainboardPos+sf::Vector2f(300,350)+p);
+
 }
 #endif // GAMECLASS_H
