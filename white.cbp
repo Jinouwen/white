@@ -52,7 +52,9 @@
 		<Unit filename="include/enemyclass.h" />
 		<Unit filename="include/firesystem.h" />
 		<Unit filename="include/gameclass.h" />
+		<Unit filename="include/mstate.h" />
 		<Unit filename="include/myshipclass.h" />
+		<Unit filename="include/welcomstate.h" />
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />

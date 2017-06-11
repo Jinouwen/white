@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1497101937 source:d:\poj\white\main.cpp
+1497164724 source:d:\poj\white\main.cpp
 	<SFML/Graphics.hpp>
 	<cstdlib>
 	<ctime>
@@ -7,6 +7,8 @@
 	<iostream>
 	<cmath>
 	<gameclass.h>
+	<mstate.h>
+	<welcomstate.h>
 
 1486736397 d:\sfml\sfml-2.4.2\include\sfml\graphics.hpp
 	<SFML/Window.hpp>
@@ -396,8 +398,7 @@
 	<string>
 	<vector>
 
-1497102085 d:\poj\white\include\gameclass.h
-	<state.h>
+1497164835 d:\poj\white\include\gameclass.h
 	<SFML/Graphics.hpp>
 	<SFML/Audio.hpp>
 	<myshipclass.h>
@@ -408,6 +409,7 @@
 	<iostream>
 	<string>
 	<sstream>
+	<mstate.h>
 
 1497094890 d:\poj\white\include\myshipclass.h
 	<SFML/Graphics.hpp>
@@ -534,5 +536,11 @@
 
 1497019122 d:\poj\white\include\animationsystem.h
 
-1497102134 d:\poj\white\include\state.h
+1497103801 d:\poj\white\include\state.h
+
+1497164186 d:\poj\white\include\mstate.h
+	<queue>
+
+1497164724 d:\poj\white\include\welcomstate.h
+	<mstate.h>
 

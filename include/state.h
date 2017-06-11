@@ -2,10 +2,13 @@
 #define STATE_H
 
 
-class State
+class mState
 {
     public:
-        State();
+        mState()
+        {
+            typeId=0;
+        }
         virtual void run();
     private:
         unsigned int typeId;

@@ -1,7 +1,6 @@
 #ifndef GAMECLASS_H
 #define GAMECLASS_H
 
-#include <state.h>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <myshipclass.h>
@@ -12,17 +11,17 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <mstate.h>
 
-class GameClass:public State
+class GameClass:public MState
 {
     public:
-        GameClass();
+        GameClass(PendingList &pendingList,sf::RenderWindow &window);
         virtual ~GameClass() {}
-        virtual void run();
     protected:
 
     private:
-        void processEvents();
+        void handleEvent(sf::Event &event);
         void update(sf::Time elapsed);
         void render();
 
@@ -35,7 +34,6 @@ class GameClass:public State
         void updateBackground(sf::Time elapsed);
         void viewUpdate();
     private:
-        sf::RenderWindow window;
         FireSystem fireSystem;
         MyshipClass myship;
         EnemyClass enemySystem;
@@ -59,22 +57,20 @@ class GameClass:public State
         unsigned int nowLevel;
         sf::Font font;
         sf::Time totalTime;
-        sf::Event event;
         sf::View gameView;
         sf::View totalView;
+        sf::Music music;
 
 
 };
 /////////////////////////////////////////////////////////////////////////////constructor
-GameClass::GameClass()
-:window(sf::VideoMode(1600, 900), "SFML works!", sf::Style::Close)
+GameClass::GameClass(PendingList &pendingList,sf::RenderWindow & window)
+:MState(pendingList,window)
 ,fireSystem(500),enemySystem(10)
 ,mainboardPos(400,0),mainboardsize(800,900)//400 1200
 ,shellTypeText0("Now shell type: "),levelText0("Now level: ")
 ,nowShellType(0),nowLevel(0)
 {
-    window.setPosition(sf::Vector2i(100,50));
-    window.setFramerateLimit(120);
     totalView=window.getDefaultView();
     gameView.setCenter(sf::Vector2f(800,450));
     gameView.setSize(sf::Vector2f(600,700));
@@ -113,29 +109,13 @@ GameClass::GameClass()
     levelText.setPosition(0,50);
     shellTypeText.setString("Now shell type: 0");
     levelText.setString("Now level: 0");
+    playBGM(music);
+
 
 }
 ////////////////////////////////////////////////////////////////////////////
-void GameClass::run()
+void GameClass::handleEvent(sf::Event &event)
 {
-    const sf::Time TPF(sf::seconds(1.f / 60.f));///Time Per Frame
-    sf::Clock clock;
-    sf::Time elapsed(sf::Time::Zero);
-    sf::Music music;
-
-    playBGM(music);
-    while(window.isOpen())
-    {
-        elapsed=clock.restart();
-        processEvents();
-        update(elapsed);
-        render();
-    }
-}
-void GameClass::processEvents()
-{
-    while (window.pollEvent(event))
-    {
         if(event.type == sf::Event::Closed)
         {
             window.close();
@@ -201,7 +181,7 @@ void GameClass::processEvents()
 
             }
         }
-    }
+
 }
 void GameClass::render()
 {
