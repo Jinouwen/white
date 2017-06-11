@@ -90,26 +90,31 @@ void MStateStack::initialize ( MState * temp )
 {
     mStack.push_back(temp);
     window.setPosition(sf::Vector2i(100,50));
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(120);
 }
 void MStateStack::run()
 {
     clock.restart();
     while(window.isOpen())
     {
+        elapsed=clock.restart();
         handlePending();
+        printf("%8d ",clock.getElapsedTime().asMilliseconds());
         while(window.pollEvent(event))
         {
             handleEvent(event);
         }
-        elapsed=clock.restart();
+        printf("%8d ",clock.getElapsedTime().asMilliseconds());
         update(elapsed);
+        printf("%8d ",clock.getElapsedTime().asMilliseconds());
         render();
+        printf("%8d \n",clock.getElapsedTime().asMilliseconds());
         handlePending();
     }
 }
 void MStateStack::handleEvent(sf::Event &event)
 {
+    (mStack.back())->handleEvent(event);
 }
 void MStateStack::update(sf::Time elapsed)
 {

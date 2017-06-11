@@ -12,12 +12,9 @@ int main()
 ///////////////////////////////////////////////////
     MStateStack mStateStack;
     WelcomState W(mStateStack.pendingList,mStateStack.window);
-
-    std::cout<<233;
-    mStateStack.initialize(&W);
+    GameClass G(mStateStack.pendingList,mStateStack.window);
+    mStateStack.initialize(&G);
     mStateStack.run();
-    //GameClass game(p);
-//    game.run();
 ///////////////////////////////////////////////////
     return 0;
 }
